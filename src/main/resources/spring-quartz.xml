@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+     http://www.springframework.org/schema/jee
+       http://www.springframework.org/schema/jee/spring-jee-2.5.xsd">
+	
+	<bean id="targetObject" class="com.sue.demo.TargetObject"></bean>
+	<bean id="timeJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用的类  -->
+		<property name="targetObject">
+			<ref bean="targetObject" />
+		</property>
+		<!-- 调用类中的方法  -->
+		<property name="targetMethod">
+			<value>targetMethod</value>
+		</property> 
+		<!-- 防止并发执行 -->
+		<property name ="concurrent" value ="false"/>		
+	</bean>
+	<bean id="timerTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="timeJob" />
+		</property>
+		<!-- cron表达式  -->
+		<property name="cronExpression">
+			<value>0/30 * * * * ?</value>
+		</property>
+	</bean>	
+
+	<bean id="strQuartz" lazy-init="true" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="timerTrigger"/>
+			</list>
+		</property>
+	</bean>
+	 
+	<bean id="setCronExpression" class="com.sue.demo.SetCronExpressionImpl" lazy-init="false">
+	   <property name="scheduler" ref="strQuartz" />
+	</bean>
+	
+</beans>
